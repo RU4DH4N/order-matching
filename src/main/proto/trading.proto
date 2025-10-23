@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package trading;
+
+import 'google/protobuf/empty.proto';
+import 'google/protobuf/timestamp.proto';
+
+option java_package = "ru4dh4n.ordermatching.grpc";
+option java_multiple_files = true;
+
+service MarketDataService {
+  rpc SubscribeToTrades(MarketSubscriptionRequest) returns (stream Trade) {}
+}
+
+service OrderService {
+  rpc PlaceOrder(OrderRequest) returns (PlaceOrderResponse) {}
+  rpc SubscribeToOrderUpdates(OrderUpdateRequest) returns (stream OrderUpdateStream) {}
+}
+
+message MarketSubscriptionRequest {
+  string instrument_id = 1;
+}
+
+message Trade {
+  string trade_id = 1;
+  string instrument_id = 2;
+  double price = 3;
+  double quantity = 4;
+  int64 timestamp_ns = 5; // nanosecond timestamp of trade
+}
+
+message OrderRequest {
+  string instrument_id = 1;
+  OrderSide side = 2;
+  string price = 3;
+  string quantity = 4;
+}
+
+message PlaceOrderResponse {
+  string order_id = 1;
+}
+
+message OrderUpdateRequest {
+  string order_id = 1;
+  google.protobuf.Timestamp last_update = 2;
+}
+
+message OrderUpdateStream {
+  oneof content {
+    OrderUpdate update = 1;
+    google.protobuf.Empty keep_alive = 2;
+  }
+}
+
+message OrderUpdate {
+  string fulfilled_quantity = 1;
+  string trade_price = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+enum OrderSide {
+  BUY = 0;
+  SELL = 1;
+}
